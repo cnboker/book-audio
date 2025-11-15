@@ -27,6 +27,11 @@ def init_model():
     prompt_speech_16k = load_wav('external/CosyVoice/asset/zero_shot_prompt.wav', 16000)
 
 def cos_voice(file:str):
+    # 如果文本长度小于30，直接返回
+    if len(text) < 30:
+        print(f"文本长度 {len(text)} 小于30，跳过生成音频")
+        return
+    
     #clear dir
     clear_dir('audio')
 
