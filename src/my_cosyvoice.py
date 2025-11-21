@@ -23,17 +23,21 @@ os.makedirs("assets/audio_parts", exist_ok=True)
 def init_model():
     global cosyvoice
     global prompt_speech_16k
-    cosyvoice = CosyVoice2('external/CosyVoice/pretrained_models/CosyVoice2-0.5B', load_jit=False, load_trt=False, fp16=False)    
+    cosyvoice = CosyVoice2('external/CosyVoice/pretrained_models/CosyVoice2-0.5B', load_jit=False, load_trt=False, fp16=True)    
     prompt_speech_16k = load_wav('external/CosyVoice/asset/zero_shot_prompt.wav', 16000)
 
 def cos_voice(file:str):
-    # 如果文本长度小于30，直接返回
-    if len(text) < 30:
-        print(f"文本长度 {len(text)} 小于30，跳过生成音频")
-        return
-    
+  
     #clear dir
     clear_dir('audio')
+    #check file exists
+    wav_file = Path(file).stem + '.wav'
+    wav_path = os.path.join('assets/audio_parts', wav_file)
+
+    # 检查完整路径
+    if Path(wav_path).exists():
+        print(f'file -> {wav_path} existed')
+        return
 
     global cosyvoice
     global prompt_speech_16k
@@ -44,7 +48,12 @@ def cos_voice(file:str):
     with open(file, 'r', encoding='utf-8') as f:
         text = f.read()
 
-    for i, j in enumerate(cosyvoice.inference_cross_lingual(text, prompt_speech_16k, stream=False)):
+  # 如果文本长度小于30，直接返回
+    if text is None or len(text) < 30:
+        print(f"文本长度 {len(text)} 小于30，跳过生成音频")
+        return
+    
+    for i, j in enumerate(cosyvoice.inference_cross_lingual(text, prompt_speech_16k, stream=False,text_frontend=False )):
         torchaudio.save('audio/part_{}.wav'.format(i), j['tts_speech'], cosyvoice.sample_rate)
     out_file = Path(file).stem + '.wav'
     print('outfile->', out_file)
